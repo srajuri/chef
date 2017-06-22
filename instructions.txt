@@ -1,0 +1,40 @@
+login to RHEL 7 machine
+swith to root and execute the below commands to run chef-solo
+
+#### Install chef client #################
+rpm -ivh https://packages.chef.io/files/stable/chef/12.13.37/el/7/chef-12.13.37-1.el7.x86_64.rpm
+
+###### open up fireall ports for apache #########
+firewall-cmd --add-service=http
+firewall-cmd --add-service=https
+firewall-cmd --runtime-to-permanent
+
+### install git package if its not installed #######
+yum install git 
+
+### create test cookbook ##################
+knife cookbook create test
+git clone https://github.com/srajuri/chef.git
+cp -r chef/apache_rhel7 /var/chef/cookbooks/
+cd /var/chef/cookbooks
+
+####### create config files solo,rb and node.json with below contents #################
+[root@localhost]# cat /var/chef/solo.rb
+cookbook_path '/var/chef/cookbooks'
+
+
+[root@localhost]# cat /var/chef/node.json
+{
+"run_list": "recipe[apache_rhel7]"
+}
+
+###### run chef-solo ##############
+
+chef-solo -c /var/chef/solo.rb -j /var/chef/node.json
+
+### running config test using server spec #########
+### install server spec gem ##########
+/opt/chef/embedded/bin/gem install serverspec
+cd /var/chef/cookbooks/apache_rhel7
+/opt/chef/embedded/bin/rake spec 
+
